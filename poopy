@@ -1,0 +1,72 @@
+from psychopy import visual, core, gui
+import os
+import random
+from psychopy.hardware import keyboard
+
+dlg = gui.Dlg(title="Participant Information")
+dlg.addField("Name:")
+dlg.addField("Session:")
+dlg.addField("ID:")
+dlg.show()
+
+if dlg.OK:
+    participant_name = dlg.data[0]
+    session_number = dlg.data[1]
+    participant_id = dlg.data[2]
+else:
+    core.quit()
+
+win = visual.Window(units='pix')
+
+circle_red = visual.Circle(win, radius=15, fillColor='red', lineColor='red')
+circle_green = visual.Circle(win, radius=75, lineWidth=5, lineColor='green', fillColor=None)
+rectangle_green = visual.Rect(win, width=140, height=140, lineWidth=5, lineColor='green', fillColor=None)
+
+shapes = [circle_red, circle_green, circle_green, circle_green, rectangle_green]
+positions = [(0, 0), (-150, 150), (-150, -150), (150, 150), (150, -150)]
+
+if not os.path.exists('data'):
+    os.makedirs('data')
+
+filename = f"data/{participant_name}_session{session_number}.txt"
+data_file = open(filename, 'a')
+
+line_center = visual.Line(win, start=(0, -30), end=(0, 30), lineWidth=5, lineColor='white')
+
+for trial in range(3):
+    trial_number = trial + 1
+
+    data_file.write(f"Trial {trial_number}:\n")
+    data_file.write(f"Name: {participant_name}\n")
+    data_file.write(f"Session: {session_number}\n")
+    data_file.write(f"ID: {participant_id}\n\n")
+
+    circle_red.draw()
+    line_center.draw()
+    win.flip()
+    core.wait(2)
+
+    for shape, position in zip(shapes, positions):
+        shape.pos = position
+        shape.draw()
+
+        if isinstance(shape, visual.Circle) and shape is not circle_red:
+            line = visual.Line(win, start=(-30, 0), end=(30, 0), lineWidth=5, lineColor='white')
+            line.pos = position
+            line.draw()
+        
+        if isinstance(shape, visual.Rect):
+            if random.choice([True, False]):
+                line = visual.Line(win, start=(-30, 0), end=(30, 0), lineWidth=5, lineColor='white')
+            else:
+                line = visual.Line(win, start=(0, -30), end=(0, 30), lineWidth=5, lineColor='white')
+            line.pos = position
+            line.draw()
+
+    line_center.draw()
+    win.flip()
+    core.wait(2)
+
+data_file.close()
+
+win.close()
